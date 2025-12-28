@@ -3,7 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 import { Expense, Person } from "../types";
 
 export const getFinancialInsights = async (expenses: Expense[], people: Person[]) => {
-  // Use the API key directly from process.env.API_KEY as per the guidelines
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const expenseSummary = expenses.map(e => ({
@@ -14,14 +13,16 @@ export const getFinancialInsights = async (expenses: Expense[], people: Person[]
   }));
 
   const prompt = `
-    Analyze these shared expenses for a group of 5 people. All amounts are in Indian Rupees (₹/INR): ${JSON.stringify(expenseSummary)}.
-    Provide a concise, friendly summary of the spending habits. 
-    Point out:
-    1. Who has paid the most/least?
-    2. Which category is draining the most money?
-    3. One practical tip to save money as a group in the context of typical daily spending in India.
+    Role: Financial Auditor for an Indian household/group.
+    Data: ${JSON.stringify(expenseSummary.slice(0, 50))} (last 50 items).
+    Currency: INR (₹).
     
-    Format the response in clean Markdown.
+    Tasks:
+    1. Identify the 'Big Spender' and 'Silent Contributor'.
+    2. Which category is eating up the budget?
+    3. Suggest ONE culturally relevant saving tip (e.g., mention UPI habits, local transport, or grocery bulk buying).
+    
+    Style: Professional, punchy, and short. Use bold text for emphasis.
   `;
 
   try {
@@ -32,6 +33,6 @@ export const getFinancialInsights = async (expenses: Expense[], people: Person[]
     return response.text;
   } catch (error) {
     console.error("Gemini Insight Error:", error);
-    return "Unable to generate insights at this time. Please check back later.";
+    return null;
   }
 };
